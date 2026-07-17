@@ -1,0 +1,339 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PLAYER
+  MODERATOR
+  ADMIN
+}
+
+enum SettlementType {
+  VILLAGE
+  TOWN
+  CITY
+  CASTLE
+  OUTPOST
+  PORT
+}
+
+enum BuildingType {
+  HOUSE
+  FARM
+  MINE
+  SMITHY
+  TAVERN
+  WAREHOUSE
+  MARKET
+  CASTLE
+  WALL
+  WATCHTOWER
+  DOCK
+  BRIDGE
+  GUILD_HALL
+  TEMPLE
+  LIBRARY
+  BARRACKS
+  STABLE
+  BAKERY
+  LUMBER_MILL
+  TANNERY
+  ALCHEMIST_SHOP
+  JEWELER
+  TAILOR_SHOP
+  FLETCHER_SHOP
+  FISHING_HUT
+  HUNTER_LODGE
+  AUCTION_HOUSE
+  BANK
+  TOWN_HALL
+}
+
+enum EventType {
+  DROUGHT
+  FLOOD
+  BLIZZARD
+  PLAGUE
+  WILDFIRE
+  EARTHQUAKE
+  METEOR_STRIKE
+  BANDIT_RAID
+  DRAGON_ATTACK
+  ECONOMIC_RECESSION
+  RESOURCE_BOOM
+  MONSTER_INVASION
+  WAR_DECLARATION
+  PEACE_TREATY
+  CITY_FOUNDED
+  CITY_DESTROYED
+  ARTIFACT_DISCOVERED
+  PORTAL_OPENED
+}
+
+enum RelationshipType {
+  FRIEND
+  RIVAL
+  PARTNER
+  APPRENTICE
+  MASTER
+  SPOUSE
+  SIBLING
+  PARENT
+  CHILD
+  EMPLOYER
+  EMPLOYEE
+  NEUTRAL
+}
+
+enum GuildRank {
+  LEADER
+  OFFICER
+  VETERAN
+  MEMBER
+  RECRUIT
+  INITIATE
+}
+
+model User {
+  id           String      @id @default(uuid())
+  username     String      @unique
+  email        String      @unique
+  passwordHash String
+  role         UserRole    @default(PLAYER)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  lastLoginAt  DateTime?
+  character    Character?
+}
+
+model Character {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  name        String   @unique
+  x           Int      @default(256)
+  y           Int      @default(256)
+  mapId       String   @default("world_overworld")
+  health      Int      @default(100)
+  maxHealth   Int      @default(100)
+  mana        Int      @default(50)
+  maxMana     Int      @default(50)
+  stamina     Int      @default(100)
+  maxStamina  Int      @default(100)
+  gold        Int      @default(100)
+  totalWealth Int      @default(100)
+  guildId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  skillsJson  Json
+  inventoryJson Json
+  equipmentJson Json
+  questLogJson Json
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model AICitizen {
+  id                 String   @id @default(uuid())
+  name               String
+  personality        String
+  mood               Int
+  morality           String
+  intelligence       Int
+  riskTolerance      Int
+  hunger             Int
+  fatigue            Int
+  wealth             Int
+  reputation         Int
+  familyIdsJson      Json
+  guildId            String?
+  profession         String
+  inventoryJson      Json
+  equipmentJson      Json
+  skillsJson         Json
+  x                  Int
+  y                  Int
+  mapId              String
+  health             Int
+  maxHealth          Int
+  homeId             String?
+  cityId             String?
+  currentGoalJson    Json?
+  goalQueueJson      Json
+  memoriesJson       Json
+  ambitionsJson      Json
+  dailyRoutineJson   Json
+  isAlive            Boolean  @default(true)
+  age                Int
+  birthTick          Int
+  lastActionTick     Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Settlement {
+  id             String         @id @default(uuid())
+  name           String
+  type           SettlementType
+  x              Int
+  y              Int
+  mapId          String
+  population     Int
+  foodSupply     Int
+  security       Int
+  economy        Int
+  resourcesJson  Json
+  taxRate        Float
+  mayorId        String?
+  guardCount     Int
+  walls          Boolean
+  port           Boolean
+  level          Int
+  foundedTick    Int
+  buildingIdsJson Json
+  citizenIdsJson Json
+  tradeRoutesJson Json
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Building {
+  id                    String       @id @default(uuid())
+  type                  BuildingType
+  name                  String
+  x                     Int
+  y                     Int
+  mapId                 String
+  settlementId          String?
+  ownerId               String?
+  level                 Int
+  health                Int
+  maxHealth             Int
+  workersJson           Json
+  inventoryJson         Json
+  isOperational         Boolean
+  constructionProgress  Int
+  maintenanceCost       Int
+  lastMaintenanceTick   Int
+  builtTick             Int
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+}
+
+model Guild {
+  id                 String   @id @default(uuid())
+  name               String   @unique
+  tag                String   @unique
+  description        String
+  leaderId           String
+  guildHallId        String?
+  storageInventoryJson Json
+  wealth             Int
+  level              Int
+  xp                 Int
+  reputation         Int
+  alliancesJson      Json
+  founded            Int
+  isPlayerGuild      Boolean  @default(false)
+  maxMembers         Int
+  recruitmentOpen    Boolean  @default(true)
+  charter            String
+  memberIdsJson      Json
+  officerIdsJson     Json
+  ranksJson          Json
+  warsJson           Json
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Monster {
+  id             String   @id @default(uuid())
+  templateId     String
+  name           String
+  level          Int
+  x              Int
+  y              Int
+  mapId          String
+  health         Int
+  maxHealth      Int
+  attackPower    Int
+  defensePower   Int
+  speed          Int
+  aggression     Int
+  territoryRadius Int
+  lootTableJson  Json
+  dropsJson      Json
+  isBoss         Boolean  @default(false)
+  behavior       String
+  packLeaderId   String?
+  packMemberIdsJson Json
+  lastCombatTick Int
+  spawnX         Int
+  spawnY         Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model MarketListing {
+  id             String   @id @default(uuid())
+  sellerId       String
+  sellerName     String
+  itemTemplateId String
+  itemInstanceId String?
+  quantity       Int
+  pricePerUnit   Int
+  listedAtTick   Int
+  expiresAtTick  Int
+  marketId       String
+  createdAt      DateTime @default(now())
+}
+
+model Transaction {
+  id           String   @id @default(uuid())
+  buyerId      String
+  sellerId     String
+  itemId       String
+  quantity     Int
+  pricePerUnit Int
+  totalPrice   Int
+  marketId     String
+  tick         Int
+  createdAt    DateTime @default(now())
+}
+
+model WorldEvent {
+  id                    String    @id @default(uuid())
+  type                  EventType
+  title                 String
+  description           String
+  tick                  Int
+  duration              Int
+  severity              Int
+  affectedMapIdsJson    Json
+  affectedSettlementIdsJson Json
+  effectsJson           Json
+  isActive              Boolean   @default(true)
+  resolvedAt            Int?
+  createdAt             DateTime  @default(now())
+}
+
+model EconomySnapshot {
+  id                    String   @id @default(uuid())
+  tick                  Int      @unique
+  totalWealth           Int
+  averageWealth         Float
+  wealthGini            Float
+  inflationRate         Float
+  unemploymentRate      Float
+  totalTransactions     Int
+  totalTradedValue      Int
+  itemPricesJson        Json
+  resourceAvailabilityJson Json
+  activeTradeRoutes     Int
+  activeShops           Int
+  activeMerchants       Int
+  createdAt             DateTime @default(now())
+}
